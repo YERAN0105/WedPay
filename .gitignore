@@ -1,0 +1,20 @@
+# dependencies
+/node_modules
+
+# Next.js build output
+/.next/
+/out/
+
+# env — NEVER commit
+.env
+.env.local
+.env.*.local
+
+# misc
+.DS_Store
+*.pem
+/coverage
+/.pnp
+.pnp.*
+.yarn/install-state.gz
+next-env.d.ts
