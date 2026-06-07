@@ -1,0 +1,90 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import type { Tables } from '@/lib/supabase/types'
+import { archiveExpense, restoreExpense } from '@/lib/expenses'
+import { ExpenseSheet } from './ExpenseSheet'
+
+export function ExpenseDetailActions({ expense }: { expense: Tables<'expenses'> }) {
+  const router = useRouter()
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [toast, setToast] = useState('')
+
+  function showToast(msg: string) {
+    setToast(msg)
+    setTimeout(() => setToast(''), 2500)
+  }
+
+  async function handleArchive() {
+    if (
+      !confirm(
+        `Archive "${expense.name}"?\n\nIt will be hidden from all lists and totals. You can restore it later from the expense page.`
+      )
+    )
+      return
+    setLoading(true)
+    const result = await archiveExpense(expense.id, expense.name)
+    setLoading(false)
+    if ('error' in result) { showToast(`Error: ${result.error}`); return }
+    router.push('/expenses')
+  }
+
+  async function handleRestore() {
+    setLoading(true)
+    const result = await restoreExpense(expense.id, expense.name)
+    setLoading(false)
+    if ('error' in result) { showToast(`Error: ${result.error}`); return }
+    showToast('Expense restored.')
+    router.refresh()
+  }
+
+  return (
+    <>
+      <div className="mx-4 mt-3 flex gap-3">
+        {!expense.is_archived && (
+          <button
+            onClick={() => setSheetOpen(true)}
+            className="flex-1 min-h-[44px] bg-white border border-gray-200 text-gray-700 font-medium rounded-xl text-sm active:bg-gray-50"
+          >
+            Edit
+          </button>
+        )}
+        {expense.is_archived ? (
+          <button
+            onClick={handleRestore}
+            disabled={loading}
+            className="flex-1 min-h-[44px] bg-white border border-green-300 text-green-700 font-medium rounded-xl text-sm disabled:opacity-50 active:bg-green-50"
+          >
+            {loading ? 'Restoring…' : 'Restore'}
+          </button>
+        ) : (
+          <button
+            onClick={handleArchive}
+            disabled={loading}
+            className="flex-1 min-h-[44px] bg-white border border-red-200 text-red-600 font-medium rounded-xl text-sm disabled:opacity-50 active:bg-red-50"
+          >
+            {loading ? 'Archiving…' : 'Archive'}
+          </button>
+        )}
+      </div>
+
+      <ExpenseSheet
+        open={sheetOpen}
+        expense={expense}
+        onClose={() => setSheetOpen(false)}
+        onSuccess={(msg) => {
+          showToast(msg)
+          router.refresh()
+        }}
+      />
+
+      {toast && (
+        <div className="fixed top-16 left-4 right-4 z-50 bg-gray-900 text-white text-sm font-medium px-4 py-3 rounded-xl shadow-lg text-center pointer-events-none">
+          {toast}
+        </div>
+      )}
+    </>
+  )
+}

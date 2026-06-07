@@ -1,8 +1,34 @@
-export default function ContributionsPage() {
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import { toMinorUnits } from '@/lib/money'
+import { ContributionsView } from '@/components/contributions/ContributionsView'
+
+export default async function ContributionsPage() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const { data: contributions } = await supabase
+    .from('contributions')
+    .select('*')
+    .eq('is_archived', false)
+    .order('contributed_on', { ascending: false })
+
+  const all = contributions ?? []
+  const groom = all.filter((c) => c.side === 'groom')
+  const bride = all.filter((c) => c.side === 'bride')
+
+  const groomTotal = groom.reduce((sum, c) => sum + toMinorUnits(c.amount), 0)
+  const brideTotal = bride.reduce((sum, c) => sum + toMinorUnits(c.amount), 0)
+
   return (
-    <div className="p-4">
-      <h2 className="text-lg font-semibold text-gray-800 mb-2">Contributions</h2>
-      <p className="text-gray-500">Money put in by each side will appear here.</p>
-    </div>
+    <ContributionsView
+      groomContributions={groom}
+      brideContributions={bride}
+      groomTotal={groomTotal}
+      brideTotal={brideTotal}
+    />
   )
 }

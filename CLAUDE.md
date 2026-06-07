@@ -1,7 +1,117 @@
-# CLAUDE.md — WedPay (wedding expense tracker)
+# CLAUDE.md
 
-This file is the project's permanent memory. Read it fully before doing anything.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+It is also the project's permanent memory for WedPay. Read it fully before doing anything.
 Whenever a rule here conflicts with a request, follow this file and ask the user.
+
+---
+
+## Developer commands
+
+```bash
+npm run dev      # start dev server at http://localhost:3000
+npm run build    # production build + TypeScript check (run this to catch type errors)
+npm run lint     # ESLint
+npm run start    # serve the production build
+```
+
+There are no automated tests. Verify each phase manually using the test steps given after each build phase.
+
+---
+
+## Technical architecture
+
+### Next.js 16 specifics
+
+- **`src/proxy.ts`** is the auth proxy — Next.js 16 renamed `middleware.ts` to `proxy.ts` and the exported function from `middleware` to `proxy`. Do not revert to `middleware.ts`.
+- **Dynamic route `params` is a Promise** in Next.js 15+. Always `await params` in page components:
+  ```ts
+  export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params
+  ```
+- **Tailwind v4** — configured via `@import "tailwindcss"` in `globals.css`. There is no `tailwind.config.ts`.
+
+### Two-layer auth
+
+Every protected request passes through two checks:
+
+1. **`src/proxy.ts`** — runs on every request; refreshes the Supabase session cookie. Unauthenticated → `/login`. Authenticated on `/login` → `/dashboard`. Does **not** check for a profile row (too slow for the edge).
+2. **`src/app/(app)/layout.tsx`** — server component; checks both session and `profiles` row. No session → `/login`. Session but no profile row → `/set-name`. The `(app)` route group wraps all four tab pages (dashboard, expenses, contributions, settings).
+
+`/login` and `/set-name` live outside the `(app)` group and have no shell layout.
+
+### Supabase clients
+
+| File | Use when |
+|---|---|
+| `src/lib/supabase/server.ts` | Server Components, Server Actions, Route Handlers |
+| `src/lib/supabase/client.ts` | Client Components (`'use client'`) |
+
+Both are generic over `Database` (from `src/lib/supabase/types.ts`). The types file is hand-written from `docs/data-model.md` — do not overwrite it with CLI output without re-adding `Relationships: []` to every table (required by supabase-js ≥ v2.68) and `Update: never` on `activity_log`.
+
+`numeric(14,2)` Postgres columns are returned as **`string`** by the JS client. This is intentional — see money arithmetic below.
+
+### Money arithmetic
+
+All arithmetic happens in **integer paisa** (minor units × 100). Never add or compare raw string amounts.
+
+```ts
+import { toMinorUnits, formatMoney } from '@/lib/money'
+
+const paisa = toMinorUnits(row.amount)   // "50000.00" → 5000000
+formatMoney(paisa)                        // → "Rs 50,000.00"
+```
+
+Ratio-based values (fair shares, balances) may produce fractional paisa — round for comparison, keep 2 decimal places for display. `formatMoney` handles the display step.
+
+### Server action pattern
+
+Every mutation follows this exact sequence — never skip the activity log step:
+
+```ts
+'use server'
+// 1. create server client
+// 2. getActor(supabase)          → { id, name } from auth + profiles
+// 3. DB operation
+// 4. logActivity(supabase, {...}) → writes to activity_log
+// 5. revalidatePath(...)          → invalidates Next.js cache so UI refreshes
+// 6. return { success: true } | { error: string }
+```
+
+All mutation files (`src/lib/expenses.ts`, and future `payments.ts`, `contributions.ts`) export `ActionResult = { success: true } | { error: string }`.
+
+### Payment totals rule
+
+A payment counts toward `total_spent`, `paid_so_far`, and category breakdowns **only when both the payment AND its parent expense are non-archived**. Do not cascade-archive payments when archiving an expense. Query:
+
+```sql
+payments.is_archived = false AND expenses.is_archived = false
+```
+
+### "Who owes whom" display rule
+
+When `leftover < 0` (contributions < spending), show **only** the gentle warning, not a "X owes Y" sentence — the data is incomplete and a confident debt sentence would mislead.
+
+---
+
+## Build phases
+
+Phases 0–3 are complete. The current state:
+- **Phase 0** — scaffold, Supabase clients, mobile shell (header + bottom tab bar)
+- **Phase 1** — database schema, types (run SQL in Supabase, create `receipts` bucket)
+- **Phase 2** — auth (login, session, display-name prompt, sign out)
+- **Phase 3** — expenses list, add/edit bottom sheet, archive/restore, activity log, expense detail
+
+Next: **Phase 4** (payments + receipts), then 5–11 per `docs/build-plan.md`.
+
+---
+
+## WedPay project spec
+
+_(Sections below are the original project spec — they are the source of truth for all business rules.)_
+
+---
 
 ---
 

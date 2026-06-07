@@ -1,29 +1,23 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { SettingsView } from '@/components/settings/SettingsView'
 
-async function signOut() {
-  'use server'
+export default async function SettingsPage() {
   const supabase = await createClient()
-  await supabase.auth.signOut()
-  redirect('/login')
-}
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
 
-export default function SettingsPage() {
+  const [{ data: settings }, { data: profile }] = await Promise.all([
+    supabase.from('app_settings').select('groom_percentage').eq('id', 1).single(),
+    supabase.from('profiles').select('display_name').eq('id', user.id).single(),
+  ])
+
   return (
-    <div className="p-4">
-      <h2 className="text-lg font-semibold text-gray-800 mb-2">Settings</h2>
-      <p className="text-gray-500 mb-8">
-        Split ratio, display name, and export will appear here.
-      </p>
-
-      <form action={signOut}>
-        <button
-          type="submit"
-          className="w-full border border-red-200 text-red-600 font-medium py-3 rounded-xl text-base active:bg-red-50 transition-colors"
-        >
-          Sign out
-        </button>
-      </form>
-    </div>
+    <SettingsView
+      currentSplitPct={settings?.groom_percentage ?? 50}
+      currentDisplayName={profile?.display_name ?? ''}
+    />
   )
 }

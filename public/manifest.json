@@ -1,0 +1,24 @@
+{
+  "name": "WedPay",
+  "short_name": "WedPay",
+  "description": "Track wedding expenses for both families",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#fdf8f6",
+  "theme_color": "#be123c",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

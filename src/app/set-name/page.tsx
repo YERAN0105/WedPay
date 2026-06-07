@@ -13,60 +13,50 @@ export default function SetNamePage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     const trimmed = name.trim()
-    if (trimmed.length < 2) {
-      setError('Name must be at least 2 characters.')
-      return
-    }
-
+    if (trimmed.length < 2) { setError('Name must be at least 2 characters.'); return }
     setError('')
     setLoading(true)
 
     const supabase = createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
-      router.push('/login')
-      return
-    }
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { router.push('/login'); return }
 
     const { error } = await supabase
       .from('profiles')
       .insert({ id: user.id, display_name: trimmed })
 
-    if (error) {
-      setError(error.message)
-      setLoading(false)
-      return
-    }
-
+    if (error) { setError(error.message); setLoading(false); return }
     router.push('/dashboard')
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-rose-600">WedPay</h1>
-          <p className="text-gray-700 mt-2 font-medium">
-            Welcome! What should we call you?
-          </p>
-          <p className="text-gray-500 text-sm mt-1">
-            This name will appear next to your changes.
-          </p>
-        </div>
+    <div className="min-h-screen flex flex-col" style={{ background: '#fdf8f6' }}>
 
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4"
-        >
+      {/* Rose gradient hero */}
+      <div
+        className="flex flex-col items-center justify-end pb-10 pt-16 px-4"
+        style={{
+          background: 'linear-gradient(160deg, #9f1239 0%, #be123c 50%, #e11d48 100%)',
+          minHeight: '35vh',
+        }}
+      >
+        <div className="w-14 h-14 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center mb-4">
+          <span className="text-white font-bold text-2xl leading-none" style={{ fontFamily: 'Georgia, serif' }}>W</span>
+        </div>
+        <h1 className="text-2xl font-bold text-white tracking-tight">WedPay</h1>
+      </div>
+
+      {/* Card */}
+      <div className="flex-1 -mt-6 rounded-t-3xl bg-white px-6 pt-8 pb-10 shadow-[0_-4px_24px_rgba(0,0,0,0.08)]">
+        <h2 className="text-xl font-bold text-stone-900 mb-1">What should we call you?</h2>
+        <p className="text-stone-500 text-sm mb-6">
+          Your name appears next to every change you make.
+        </p>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label
-              htmlFor="name"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Your name
+            <label htmlFor="name" className="block text-sm font-semibold text-stone-700 mb-1.5">
+              Your display name
             </label>
             <input
               id="name"
@@ -76,13 +66,13 @@ export default function SetNamePage() {
               autoFocus
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+              className="w-full border border-stone-200 rounded-xl px-4 py-3 text-base text-stone-900 placeholder:text-stone-300 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-shadow"
               placeholder="e.g. Nuwan"
             />
           </div>
 
           {error && (
-            <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">
+            <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
               {error}
             </p>
           )}
@@ -90,7 +80,7 @@ export default function SetNamePage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-rose-600 text-white font-semibold py-3 rounded-xl text-base disabled:opacity-60 active:bg-rose-700 transition-colors"
+            className="w-full bg-rose-700 text-white font-semibold py-3.5 rounded-xl text-base disabled:opacity-60 active:bg-rose-800 transition-colors shadow-sm"
           >
             {loading ? 'Saving…' : 'Save and continue'}
           </button>
