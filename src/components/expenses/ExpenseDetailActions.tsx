@@ -11,6 +11,7 @@ export function ExpenseDetailActions({ expense }: { expense: Tables<'expenses'> 
   const [sheetOpen, setSheetOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [toast, setToast] = useState('')
+  const [confirmingArchive, setConfirmingArchive] = useState(false)
 
   function showToast(msg: string) {
     setToast(msg)
@@ -18,16 +19,14 @@ export function ExpenseDetailActions({ expense }: { expense: Tables<'expenses'> 
   }
 
   async function handleArchive() {
-    if (
-      !confirm(
-        `Archive "${expense.name}"?\n\nIt will be hidden from all lists and totals. You can restore it later from the expense page.`
-      )
-    )
-      return
     setLoading(true)
     const result = await archiveExpense(expense.id, expense.name)
     setLoading(false)
-    if ('error' in result) { showToast(`Error: ${result.error}`); return }
+    if ('error' in result) {
+      setConfirmingArchive(false)
+      showToast(`Error: ${result.error}`)
+      return
+    }
     router.push('/expenses')
   }
 
@@ -61,14 +60,49 @@ export function ExpenseDetailActions({ expense }: { expense: Tables<'expenses'> 
           </button>
         ) : (
           <button
-            onClick={handleArchive}
-            disabled={loading}
-            className="flex-1 min-h-[44px] bg-white border border-red-200 text-red-600 font-medium rounded-xl text-sm disabled:opacity-50 active:bg-red-50"
+            onClick={() => setConfirmingArchive(true)}
+            className="flex-1 min-h-[44px] bg-white border border-red-200 text-red-600 font-medium rounded-xl text-sm active:bg-red-50"
           >
-            {loading ? 'Archiving…' : 'Archive'}
+            Archive
           </button>
         )}
       </div>
+
+      {/* Archive confirmation modal */}
+      {confirmingArchive && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6"
+          onClick={() => setConfirmingArchive(false)}
+        >
+          <div
+            className="w-full max-w-sm bg-white rounded-2xl shadow-xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-6 pt-6 pb-4">
+              <h2 className="text-base font-semibold text-gray-900">Archive expense?</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                &ldquo;{expense.name}&rdquo; will be hidden from all lists and totals. You can restore it later.
+              </p>
+            </div>
+            <div className="flex border-t border-gray-100">
+              <button
+                onClick={() => setConfirmingArchive(false)}
+                className="flex-1 py-4 text-sm font-medium text-gray-600 active:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <div className="w-px bg-gray-100" />
+              <button
+                onClick={handleArchive}
+                disabled={loading}
+                className="flex-1 py-4 text-sm font-semibold text-red-600 active:bg-red-50 disabled:opacity-50"
+              >
+                {loading ? 'Archiving…' : 'Archive'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <ExpenseSheet
         open={sheetOpen}

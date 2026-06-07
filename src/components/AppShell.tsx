@@ -109,18 +109,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               className="flex-1 flex flex-col items-center justify-center py-1.5 gap-0.5 min-h-[56px] transition-colors"
               aria-current={active ? 'page' : undefined}
             >
-              {/* Pill behind active icon */}
+              {/* Filled rose pill for active, ghost for inactive */}
               <span
-                className={`flex items-center justify-center w-12 h-7 rounded-full transition-colors ${
-                  active ? 'bg-rose-50' : ''
+                className={`flex items-center justify-center w-12 h-7 rounded-full transition-all duration-200 ${
+                  active ? 'bg-rose-600 shadow-sm' : ''
                 }`}
               >
-                <span className={active ? 'text-rose-700' : 'text-stone-400'}>
+                <span className={active ? 'text-white' : 'text-stone-400'}>
                   {tab.icon(active)}
                 </span>
               </span>
               <span
-                className={`text-[10px] font-semibold leading-tight tracking-wide ${
+                className={`text-[10px] font-bold leading-tight tracking-wide transition-colors ${
                   active ? 'text-rose-700' : 'text-stone-400'
                 }`}
               >

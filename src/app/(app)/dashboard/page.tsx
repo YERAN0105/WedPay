@@ -193,6 +193,15 @@ export default async function DashboardPage() {
             </p>
           )}
         </div>
+      ) : totalSpentPaisa === 0 && totalContributedPaisa === 0 ? (
+        <div className="rounded-3xl p-5 bg-stone-50 border border-stone-100"
+          style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+          <p className="text-xs font-bold uppercase tracking-widest text-stone-400 mb-2">
+            Who owes whom
+          </p>
+          <p className="text-xl font-bold text-stone-500">No data yet.</p>
+          <p className="text-xs text-stone-400 mt-1">Add expenses and contributions to see the balance.</p>
+        </div>
       ) : (
         <div className="rounded-3xl p-5 bg-emerald-50 border border-emerald-100"
           style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
@@ -211,31 +220,39 @@ export default async function DashboardPage() {
       {/* 2. Budget vs spent */}
       <div className="bg-white rounded-2xl p-5 border border-stone-100"
         style={{ boxShadow: '0 1px 8px rgba(0,0,0,0.05)' }}>
-        <p className="text-xs font-bold uppercase tracking-widest text-stone-400 mb-4">
-          Budget overview
-        </p>
-        <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className="flex items-center gap-2 mb-4">
+          <span className="w-1 h-4 rounded-full bg-rose-600 shrink-0" />
+          <p className="text-xs font-bold uppercase tracking-widest text-stone-500">Budget overview</p>
+        </div>
+        {/* Big percentage + stat grid */}
+        <div className="flex items-end gap-4 mb-4">
           <div>
-            <p className="text-xs text-stone-400 mb-0.5">Total budget</p>
-            <p className="text-lg font-bold text-stone-900">{formatMoney(totalBudgetPaisa)}</p>
+            <p className="text-5xl font-black text-stone-900 leading-none">{budgetPct}<span className="text-2xl text-stone-400 font-bold">%</span></p>
+            <p className="text-xs text-stone-400 mt-1">of budget spent</p>
           </div>
-          <div>
-            <p className="text-xs text-stone-400 mb-0.5">Total spent</p>
-            <p className="text-lg font-bold text-stone-900">{formatMoney(totalSpentPaisa)}</p>
+          <div className="flex-1 grid grid-cols-2 gap-3 pb-1">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-stone-400">Budget</p>
+              <p className="text-sm font-bold text-stone-800 mt-0.5">{formatMoney(totalBudgetPaisa)}</p>
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-stone-400">Spent</p>
+              <p className="text-sm font-bold text-stone-800 mt-0.5">{formatMoney(totalSpentPaisa)}</p>
+            </div>
           </div>
         </div>
         {/* Gradient progress bar */}
-        <div className="h-2.5 rounded-full bg-stone-100 overflow-hidden mb-2">
+        <div className="h-3 rounded-full bg-stone-100 overflow-hidden mb-3">
           <div
-            className="h-full rounded-full transition-all"
+            className="h-full rounded-full transition-all duration-500"
             style={{
               width: `${budgetPct}%`,
-              background: 'linear-gradient(90deg, #be123c, #e11d48)',
+              background: 'linear-gradient(90deg, #9f1239, #e11d48)',
             }}
           />
         </div>
         <div className="flex items-center justify-between">
-          <p className="text-xs text-stone-400">{budgetPct}% spent</p>
+          <p className="text-xs text-stone-400">{formatMoney(totalSpentPaisa)} spent so far</p>
           <div className="text-right">
             <p className="text-xs text-stone-400">Still to pay</p>
             <p className="text-sm font-bold text-stone-700">{formatMoney(stillToPayPaisa)}</p>
@@ -245,9 +262,12 @@ export default async function DashboardPage() {
 
       {/* 3. Each side's position */}
       <div>
-        <p className="text-xs font-bold uppercase tracking-widest text-stone-400 mb-2 px-1">
-          Each side · Split {groomPct} / {100 - groomPct}
-        </p>
+        <div className="flex items-center gap-2 mb-2 px-1">
+          <span className="w-1 h-4 rounded-full bg-rose-600 shrink-0" />
+          <p className="text-xs font-bold uppercase tracking-widest text-stone-500">
+            Each side · Split {groomPct} / {100 - groomPct}
+          </p>
+        </div>
         <div className="grid grid-cols-2 gap-3">
           {sides.map(({ label, contributed, fairShare, balance, pct }) => {
             const overpaid = balance > 0
@@ -299,9 +319,10 @@ export default async function DashboardPage() {
       {upcoming.length > 0 && (
         <div className="bg-white rounded-2xl p-5 border border-stone-100"
           style={{ boxShadow: '0 1px 8px rgba(0,0,0,0.05)' }}>
-          <p className="text-xs font-bold uppercase tracking-widest text-stone-400 mb-3">
-            Upcoming payments
-          </p>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="w-1 h-4 rounded-full bg-rose-600 shrink-0" />
+            <p className="text-xs font-bold uppercase tracking-widest text-stone-500">Upcoming payments</p>
+          </div>
           <div className="divide-y divide-stone-50">
             {upcoming.map(e => (
               <Link
@@ -331,9 +352,10 @@ export default async function DashboardPage() {
       {categoryBreakdown.length > 0 && (
         <div className="bg-white rounded-2xl p-5 border border-stone-100"
           style={{ boxShadow: '0 1px 8px rgba(0,0,0,0.05)' }}>
-          <p className="text-xs font-bold uppercase tracking-widest text-stone-400 mb-4">
-            Spending by category
-          </p>
+          <div className="flex items-center gap-2 mb-4">
+            <span className="w-1 h-4 rounded-full bg-rose-600 shrink-0" />
+            <p className="text-xs font-bold uppercase tracking-widest text-stone-500">Spending by category</p>
+          </div>
           <div className="space-y-3.5">
             {categoryBreakdown.map(([cat, amount]) => (
               <div key={cat}>
@@ -369,9 +391,10 @@ export default async function DashboardPage() {
       <div className="bg-white rounded-2xl p-5 border border-stone-100"
         style={{ boxShadow: '0 1px 8px rgba(0,0,0,0.05)' }}>
         <div className="flex items-center justify-between mb-4">
-          <p className="text-xs font-bold uppercase tracking-widest text-stone-400">
-            Recent activity
-          </p>
+          <div className="flex items-center gap-2">
+            <span className="w-1 h-4 rounded-full bg-rose-600 shrink-0" />
+            <p className="text-xs font-bold uppercase tracking-widest text-stone-500">Recent activity</p>
+          </div>
           <Link href="/activity" className="text-xs font-bold text-rose-700">
             View all →
           </Link>

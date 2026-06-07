@@ -33,6 +33,7 @@ export function PaymentList({ payments, expenseId, expenseName }: Props) {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editPayment, setEditPayment] = useState<Payment | null>(null)
   const [archivingId, setArchivingId] = useState<string | null>(null)
+  const [confirmPayment, setConfirmPayment] = useState<Payment | null>(null)
   const [toast, setToast] = useState('')
 
   function showToast(msg: string) {
@@ -42,15 +43,10 @@ export function PaymentList({ payments, expenseId, expenseName }: Props) {
   }
 
   async function handleArchive(p: Payment) {
-    if (
-      !confirm(
-        `Remove this payment of ${formatMoney(toMinorUnits(p.amount))}?\n\nIt will no longer count toward totals.`
-      )
-    )
-      return
     setArchivingId(p.id)
     const result = await archivePayment(p.id, expenseId, expenseName, p.amount)
     setArchivingId(null)
+    setConfirmPayment(null)
     if ('error' in result) { showToast(`Error: ${result.error}`); return }
     showToast('Payment removed.')
   }
@@ -104,16 +100,52 @@ export function PaymentList({ payments, expenseId, expenseName }: Props) {
                 Edit
               </button>
               <button
-                onClick={() => handleArchive(p)}
+                onClick={() => setConfirmPayment(p)}
                 disabled={archivingId === p.id}
                 className="flex-1 min-h-[44px] text-sm font-medium text-red-600 border border-red-200 rounded-xl active:bg-red-50 disabled:opacity-50"
               >
-                {archivingId === p.id ? 'Removing…' : 'Remove'}
+                Remove
               </button>
             </div>
           </div>
         ))}
       </div>
+
+      {/* Remove payment confirmation modal */}
+      {confirmPayment && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6"
+          onClick={() => setConfirmPayment(null)}
+        >
+          <div
+            className="w-full max-w-sm bg-white rounded-2xl shadow-xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-6 pt-6 pb-4">
+              <h2 className="text-base font-semibold text-gray-900">Remove payment?</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                {formatMoney(toMinorUnits(confirmPayment.amount))} on {formatDate(confirmPayment.paid_on)} will no longer count toward totals.
+              </p>
+            </div>
+            <div className="flex border-t border-gray-100">
+              <button
+                onClick={() => setConfirmPayment(null)}
+                className="flex-1 py-4 text-sm font-medium text-gray-600 active:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <div className="w-px bg-gray-100" />
+              <button
+                onClick={() => handleArchive(confirmPayment)}
+                disabled={archivingId === confirmPayment.id}
+                className="flex-1 py-4 text-sm font-semibold text-red-600 active:bg-red-50 disabled:opacity-50"
+              >
+                {archivingId === confirmPayment.id ? 'Removing…' : 'Remove'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <PaymentSheet
         open={sheetOpen}

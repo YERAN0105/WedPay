@@ -296,7 +296,10 @@ export function ExpenseSheet({ open, expense, onClose, onSuccess }: Props) {
                 <input
                   type="date"
                   value={form.next_due_date}
-                  onChange={(e) => set('next_due_date', e.target.value)}
+                  onChange={(e) => {
+                    set('next_due_date', e.target.value)
+                    if (!e.target.value) set('next_due_amount', '')
+                  }}
                   className="border border-gray-300 rounded-lg px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-rose-500"
                 />
               </div>

@@ -7,10 +7,18 @@ import type { ExpenseWithPaid } from '@/lib/types'
 import { ExpenseSheet } from './ExpenseSheet'
 
 const STATUS_COLORS: Record<string, string> = {
-  'Not paid': 'bg-gray-100 text-gray-600',
+  'Not paid':    'bg-stone-100 text-stone-500',
   'Partly paid': 'bg-amber-100 text-amber-700',
-  'Fully paid': 'bg-green-100 text-green-700',
-  'Overpaid': 'bg-blue-100 text-blue-700',
+  'Fully paid':  'bg-emerald-100 text-emerald-700',
+  'Overpaid':    'bg-sky-100 text-sky-700',
+}
+
+// Left-border accent color per status (inline style so Tailwind purge doesn't strip dynamic values)
+const STATUS_BORDER: Record<string, string> = {
+  'Not paid':    '#d1d5db',
+  'Partly paid': '#f59e0b',
+  'Fully paid':  '#10b981',
+  'Overpaid':    '#38bdf8',
 }
 
 const ALL_STATUSES = ['Not paid', 'Partly paid', 'Fully paid', 'Overpaid']
@@ -143,8 +151,11 @@ export function ExpenseList({ expenses }: { expenses: ExpenseWithPaid[] }) {
             <Link
               key={e.id}
               href={`/expenses/${e.id}`}
-              className="block bg-white rounded-2xl border border-stone-100 p-4 active:opacity-80 transition-opacity"
-              style={{ boxShadow: '0 1px 8px rgba(0,0,0,0.05)' }}
+              className="block bg-white rounded-2xl border border-stone-100 p-4 active:opacity-75 transition-opacity"
+              style={{
+                borderLeft: `4px solid ${STATUS_BORDER[e.status] ?? '#d1d5db'}`,
+                boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+              }}
             >
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div className="flex-1 min-w-0">
@@ -189,7 +200,11 @@ export function ExpenseList({ expenses }: { expenses: ExpenseWithPaid[] }) {
       {/* Floating add button */}
       <button
         onClick={() => setSheetOpen(true)}
-        className="fixed bottom-20 right-4 z-30 w-14 h-14 bg-rose-600 text-white rounded-full shadow-lg flex items-center justify-center text-3xl leading-none active:bg-rose-700"
+        className="fixed bottom-20 right-4 z-30 w-14 h-14 text-white rounded-2xl flex items-center justify-center text-2xl font-bold leading-none active:scale-95 transition-transform"
+        style={{
+          background: 'linear-gradient(135deg, #9f1239, #e11d48)',
+          boxShadow: '0 6px 20px rgba(159,18,57,0.45)',
+        }}
         aria-label="Add expense"
       >
         +

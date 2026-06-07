@@ -83,54 +83,59 @@ export function ContributionsView({
             { side: 'groom' as const, label: "Groom's side", total: groomTotal },
             { side: 'bride' as const, label: "Bride's side", total: brideTotal },
           ] as const
-        ).map(({ side, label, total }) => (
-          <button
-            key={side}
-            onClick={() => setActiveSide(side)}
-            className={`text-left p-3 rounded-xl border-2 transition-colors ${
-              activeSide === side
-                ? 'border-rose-500 bg-rose-50'
-                : 'border-gray-200 bg-white'
-            }`}
-          >
-            <p
-              className={`text-xs font-semibold uppercase tracking-wide ${
-                activeSide === side ? 'text-rose-600' : 'text-gray-400'
-              }`}
+        ).map(({ side, label, total }) => {
+          const active = activeSide === side
+          return (
+            <button
+              key={side}
+              onClick={() => setActiveSide(side)}
+              className="text-left p-4 rounded-2xl border-2 transition-all duration-200"
+              style={active ? {
+                borderColor: '#be123c',
+                background: 'linear-gradient(135deg, #fff1f2, #fff5f5)',
+                boxShadow: '0 4px 16px rgba(190,18,60,0.18)',
+              } : {
+                borderColor: '#f1f0ef',
+                background: '#ffffff',
+              }}
             >
-              {label}
-            </p>
-            <p
-              className={`text-sm font-bold mt-0.5 ${
-                activeSide === side ? 'text-rose-700' : 'text-gray-700'
-              }`}
-            >
-              {formatMoney(total)}
-            </p>
-          </button>
-        ))}
+              <p className={`text-[10px] font-bold uppercase tracking-widest mb-1 ${
+                active ? 'text-rose-600' : 'text-stone-400'
+              }`}>
+                {label}
+              </p>
+              <p className={`text-base font-bold ${active ? 'text-rose-800' : 'text-stone-700'}`}>
+                {formatMoney(total)}
+              </p>
+            </button>
+          )
+        })}
       </div>
 
       {/* List for active side */}
       <div className="px-4 mt-4">
         {activeList.length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-100 p-6 text-center text-gray-400 text-sm">
-            No contributions from {activeSide === 'groom' ? "Groom's" : "Bride's"} side yet.
-            <br />
-            Tap + to record the first one.
+          <div className="bg-white rounded-2xl border border-stone-100 p-8 text-center"
+            style={{ boxShadow: '0 1px 8px rgba(0,0,0,0.04)' }}>
+            <p className="text-3xl mb-2">💰</p>
+            <p className="font-semibold text-stone-700 mb-1">No contributions yet</p>
+            <p className="text-sm text-stone-400">
+              Tap + to record the first contribution from {activeSide === 'groom' ? "Groom's" : "Bride's"} side.
+            </p>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {activeList.map((c) => (
-              <div key={c.id} className="bg-white rounded-xl border border-gray-100 p-4">
+              <div key={c.id} className="bg-white rounded-2xl border border-stone-100 p-4"
+                style={{ boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
                 <div className="flex items-start gap-3">
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900 text-base">
+                    <p className="font-bold text-stone-900 text-lg leading-tight">
                       {formatMoney(toMinorUnits(c.amount))}
                     </p>
-                    <p className="text-sm text-gray-500 mt-0.5">{formatDate(c.contributed_on)}</p>
-                    {c.note && <p className="text-sm text-gray-600 mt-1">{c.note}</p>}
-                    <p className="text-xs text-gray-400 mt-1">
+                    <p className="text-sm text-stone-500 mt-0.5">{formatDate(c.contributed_on)}</p>
+                    {c.note && <p className="text-sm text-stone-600 mt-1">{c.note}</p>}
+                    <p className="text-xs text-stone-400 mt-1">
                       Added by {c.created_by_name ?? 'Unknown'}
                     </p>
                   </div>
@@ -146,14 +151,14 @@ export function ContributionsView({
                 <div className="mt-3 flex gap-2">
                   <button
                     onClick={() => openEdit(c)}
-                    className="flex-1 min-h-[44px] text-sm font-medium text-gray-600 border border-gray-200 rounded-xl active:bg-gray-50"
+                    className="flex-1 min-h-[44px] text-sm font-semibold text-stone-600 border border-stone-200 rounded-xl active:bg-stone-50 transition-colors"
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => handleArchive(c)}
                     disabled={archivingId === c.id}
-                    className="flex-1 min-h-[44px] text-sm font-medium text-red-600 border border-red-200 rounded-xl active:bg-red-50 disabled:opacity-50"
+                    className="flex-1 min-h-[44px] text-sm font-semibold text-red-600 border border-red-100 rounded-xl active:bg-red-50 disabled:opacity-50 transition-colors"
                   >
                     {archivingId === c.id ? 'Removing…' : 'Remove'}
                   </button>
@@ -167,7 +172,11 @@ export function ContributionsView({
       {/* Floating add button */}
       <button
         onClick={openAdd}
-        className="fixed bottom-20 right-4 z-30 w-14 h-14 bg-rose-600 text-white rounded-full shadow-lg flex items-center justify-center text-3xl leading-none active:bg-rose-700"
+        className="fixed bottom-20 right-4 z-30 w-14 h-14 text-white rounded-2xl flex items-center justify-center text-2xl font-bold leading-none active:scale-95 transition-transform"
+        style={{
+          background: 'linear-gradient(135deg, #9f1239, #e11d48)',
+          boxShadow: '0 6px 20px rgba(159,18,57,0.45)',
+        }}
         aria-label="Add contribution"
       >
         +
